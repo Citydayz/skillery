@@ -43,8 +43,8 @@ export default async function handler(
           return res.status(500).json({ error: "Erreur interne" });
         }
 
-        // Maintenant, on utilise un type explicite pour les résultats
-        const user = results[0] as User; // On force les résultats comme un tableau d'objets de type User
+        // Spécifier que results est un tableau d'objets de type User
+        const user = (results as mysql.RowDataPacket[])[0]; // On force les résultats comme un tableau de RowDataPacket
 
         if (!user) {
           return res.status(404).json({ error: "Utilisateur non trouvé." });

@@ -1,15 +1,6 @@
-// pages/api/register.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql from "mysql2"; // On importe le module mysql2
-import bcrypt from "bcryptjs"; // Pour le hachage du mot de passe
-
-// Connexion à la base de données
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "skillery_admin", // Utilisateur que tu utilises
-  password: process.env.MYSQL_PASSWORD, // Utilise le mot de passe depuis .env pour la sécurité
-  database: "skillery_db", // La base de données où tu veux enregistrer les utilisateurs
-});
+import mysql from "mysql2";
+import bcrypt from "bcryptjs";
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,40 +14,52 @@ export default async function handler(
       return res.status(400).json({ error: "Tous les champs sont requis." });
     }
 
-    // Vérifier si l'utilisateur existe déjà dans la base de données
+    // Connexion à la base de données
+    const db = mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
+
+    // Requête pour vérifier si l'utilisateur existe déjà
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Erreur de base de données" });
+        console.error("Erreur lors de la vérification de l'utilisateur :", err);
+        return res.status(500).json({ error: "Erreur interne" });
       }
 
-      if (result.length > 0) {
+      // Forcer TypeScript à savoir que result est un tableau d'objets de type RowDataPacket[]
+      const users = result as mysql.RowDataPacket[]; // on force le résultat comme étant un tableau de RowDataPacket
+
+      if (users.length > 0) {
         return res.status(400).json({ error: "Cet utilisateur existe déjà." });
       }
 
-      // Hachage du mot de passe avant de l'enregistrer
+      // Hasher le mot de passe
       bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
-          console.error(err);
-          return res
-            .status(500)
-            .json({ error: "Erreur lors du hachage du mot de passe" });
+          console.error("Erreur lors du hashage du mot de passe :", err);
+          return res.status(500).json({ error: "Erreur interne" });
         }
 
-        // Insertion de l'utilisateur dans la base de données
+        // Insérer l'utilisateur dans la base de données
         db.query(
           "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
           [username, email, hashedPassword],
-          (err) => {
+          (err, result) => {
             if (err) {
-              console.error(err);
+              console.error(
+                "Erreur lors de l'insertion dans la base de données :",
+                err
+              );
               return res
                 .status(500)
-                .json({ error: "Erreur lors de l'enregistrement" });
+                .json({ error: "Erreur lors de la création de l'utilisateur" });
             }
             return res
               .status(201)
-              .json({ message: "Utilisateur créé avec succès." });
+              .json({ message: "Utilisateur créé avec succès" });
           }
         );
       });
