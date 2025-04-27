@@ -2,6 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import mysql from "mysql2";
 import bcrypt from "bcryptjs";
 
+// Définir un type pour l'utilisateur (par exemple avec une interface)
+interface User {
+  id: number;
+  email: string;
+  password: string;
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -36,8 +43,8 @@ export default async function handler(
           return res.status(500).json({ error: "Erreur interne" });
         }
 
-        // Assurez-vous que la requête a retourné un utilisateur
-        const user = results[0]; // Prenez la première ligne du tableau des résultats
+        // Maintenant, on utilise un type explicite pour les résultats
+        const user = results[0] as User; // On force les résultats comme un tableau d'objets de type User
 
         if (!user) {
           return res.status(404).json({ error: "Utilisateur non trouvé." });
