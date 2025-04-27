@@ -1,0 +1,15 @@
+[
+  {
+    "slug": "image-converter",
+    "title": "Convertisseur d'images",
+    "description": "Convertis, redimensionne et compresse tes images en un clic.",
+    "component": "ImageConverter"
+  },
+  {
+    "slug": "color-palette-generator",
+    "title": "Générateur de palettes",
+    "description": "Crée des palettes de couleurs harmonieuses en un clic.",
+    "component": "ColorPaletteGenerator"
+  }
+  
+]
