@@ -2,14 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import mysql from "mysql2";
 import bcrypt from "bcryptjs";
 
-// Connexion à la base de données
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -24,24 +16,34 @@ export default async function handler(
         .json({ error: "Les champs email et mot de passe sont requis." });
     }
 
-    // Recherche de l'utilisateur dans la base de données
-    const query = "SELECT * FROM users WHERE email = ?";
+    // Connexion à la base de données
+    const db = mysql.createConnection({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
 
-    db.query(query, [email], async (err, result) => {
-      if (err) {
-        console.error("Erreur lors de la récupération de l'utilisateur:", err);
-        return res.status(500).json({ error: "Erreur de connexion" });
-      }
+    db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err) {
+          console.error(
+            "Erreur lors de la récupération de l'utilisateur :",
+            err
+          );
+          return res.status(500).json({ error: "Erreur interne" });
+        }
 
-      // Vérifier si le résultat est un tableau et non un objet OkPacket
-      if (Array.isArray(result) && result.length === 0) {
-        return res.status(404).json({ error: "Utilisateur non trouvé." });
-      }
+        // Assurez-vous que la requête a retourné un utilisateur
+        const user = results[0]; // Prenez la première ligne du tableau des résultats
 
-      if (Array.isArray(result) && result.length > 0) {
-        const user = result[0]; // Si c'est un tableau, on prend le premier utilisateur trouvé
+        if (!user) {
+          return res.status(404).json({ error: "Utilisateur non trouvé." });
+        }
 
-        // Comparaison des mots de passe
+        // Comparer le mot de passe hashé avec le mot de passe fourni
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
@@ -50,10 +52,7 @@ export default async function handler(
           return res.status(401).json({ error: "Mot de passe incorrect" });
         }
       }
-
-      // Si ce n'est ni un tableau ni un objet valide, on renvoie une erreur
-      return res.status(500).json({ error: "Erreur interne" });
-    });
+    );
   } else {
     return res.status(405).json({ error: "Méthode non autorisée" });
   }
