@@ -1,14 +1,13 @@
-// pages/api/login.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql from "mysql2"; // On importe le module mysql2
-import bcrypt from "bcryptjs"; // Pour la vérification du mot de passe haché
+import mysql from "mysql2";
+import bcrypt from "bcryptjs";
 
 // Connexion à la base de données
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "skillery_admin", // Utilisateur que tu utilises
-  password: process.env.MYSQL_PASSWORD, // Utilise le mot de passe depuis .env pour la sécurité
-  database: "skillery_db", // La base de données où tu veux vérifier les utilisateurs
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 export default async function handler(
@@ -25,34 +24,35 @@ export default async function handler(
         .json({ error: "Les champs email et mot de passe sont requis." });
     }
 
-    // Vérifier si l'utilisateur existe dans la base de données
-    db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
+    // Recherche de l'utilisateur dans la base de données
+    const query = "SELECT * FROM users WHERE email = ?";
+
+    db.query(query, [email], async (err, result) => {
       if (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Erreur de base de données" });
+        console.error("Erreur lors de la récupération de l'utilisateur:", err);
+        return res.status(500).json({ error: "Erreur de connexion" });
       }
 
-      if (result.length === 0) {
+      // Vérifier si le résultat est un tableau et non un objet OkPacket
+      if (Array.isArray(result) && result.length === 0) {
         return res.status(404).json({ error: "Utilisateur non trouvé." });
       }
 
-      const user = result[0];
+      if (Array.isArray(result) && result.length > 0) {
+        const user = result[0]; // Si c'est un tableau, on prend le premier utilisateur trouvé
 
-      // Comparer le mot de passe saisi avec le mot de passe haché dans la base de données
-      bcrypt.compare(password, user.password, (err, isMatch) => {
-        if (err) {
-          console.error(err);
-          return res
-            .status(500)
-            .json({ error: "Erreur lors de la comparaison du mot de passe" });
+        // Comparaison des mots de passe
+        const match = await bcrypt.compare(password, user.password);
+
+        if (match) {
+          return res.status(200).json({ message: "Connexion réussie" });
+        } else {
+          return res.status(401).json({ error: "Mot de passe incorrect" });
         }
+      }
 
-        if (!isMatch) {
-          return res.status(401).json({ error: "Mot de passe incorrect." });
-        }
-
-        return res.status(200).json({ message: "Connexion réussie." });
-      });
+      // Si ce n'est ni un tableau ni un objet valide, on renvoie une erreur
+      return res.status(500).json({ error: "Erreur interne" });
     });
   } else {
     return res.status(405).json({ error: "Méthode non autorisée" });
