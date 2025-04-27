@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button"; // Si tu n'as pas le Button, utilise un simple <button>
 
 type Tool = {
   slug: string;
@@ -23,9 +24,11 @@ export default function Header() {
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
         <h1 className="text-xl font-bold tracking-wide">⚙️ Skillery</h1>
         <nav className="space-x-6 flex items-center relative">
-          <Link href="/" className="hover:text-[#00ADB5]">Accueil</Link>
+          <Link href="/" className="hover:text-[#00ADB5]">
+            Accueil
+          </Link>
 
-          {/* Dropdown menu au clic */}
+          {/* Dropdown menu */}
           <div className="relative">
             <button
               onClick={() => setOpen(!open)}
@@ -52,7 +55,17 @@ export default function Header() {
             )}
           </div>
 
-          <Link href="/blog" className="hover:text-[#00ADB5]">Blog</Link>
+          <Link href="/blog" className="hover:text-[#00ADB5]">
+            Blog
+          </Link>
+
+          {/* Liens de Connexion et Inscription */}
+          <Link href="/login">
+            <Button className="hover:text-[#00ADB5]">Connexion</Button>
+          </Link>
+          <Link href="/register">
+            <Button className="hover:text-[#00ADB5]">Inscription</Button>
+          </Link>
         </nav>
       </div>
     </header>
