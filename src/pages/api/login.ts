@@ -25,10 +25,10 @@ export default async function handler(
 
     // Connexion à la base de données
     const db = mysql.createConnection({
-      host: "51.178.24.24",
-      user: "ubuntu",
-      password: "@30B3H-11u05g19o99",
-      database: "skillery",
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
     });
 
     db.query(
