@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button"; // Si tu n'as pas le Button, utilise un simple <button>
+import { Button } from "@/components/ui/Button";
 
 type Tool = {
   slug: string;

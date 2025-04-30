@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import dynamic from "next/dynamic";
 import tools from "@/data/tools.json";
+import ToolRenderer from "@/components/tools/ToolRenderer";
 
 type Tool = {
   slug: string;
@@ -33,20 +33,12 @@ export default async function ToolPage({ params }: { params: Params }) {
   const tool = (tools as Tool[]).find((t) => t.slug === slug);
   if (!tool) return notFound();
 
-  const ToolComponent = dynamic(
-    () => import(`@/components/tools/${tool.component}`)
-  );
-
-  // 👇 On adapte la largeur dynamiquement selon le slug
-  const wrapperClass =
-    slug === "color-palette-generator"
-      ? "w-full max-w-[90%]"
-      : "w-full max-w-4xl";
+  const wrapperClass = "w-full";
 
   return (
-    <main className="min-h-screen bg-[#f9fafb] text-gray-800 px-4 py-12 flex justify-center">
+    <main className="min-h-screen bg-[#f9fafb] text-gray-800 flex justify-center">
       <div className={wrapperClass}>
-        <ToolComponent />
+        <ToolRenderer component={tool.component} />
       </div>
     </main>
   );
