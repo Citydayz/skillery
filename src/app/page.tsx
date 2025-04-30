@@ -16,6 +16,7 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-bold mt-2">
               Connecte les outils que tu utilises déjà
             </h2>
+            <h3>Test</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 place-items-center">
             {[
