@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import mysql from "mysql2";
 import bcrypt from "bcryptjs";
 
-// Définir un type pour l'utilisateur (par exemple avec une interface)
+// Définir un type pour l'utilisateur
 interface User {
   id: number;
   email: string;
@@ -16,7 +16,6 @@ export default async function handler(
   if (req.method === "POST") {
     const { email, password } = req.body;
 
-    // Validation des données
     if (!email || !password) {
       return res
         .status(400)
@@ -34,7 +33,14 @@ export default async function handler(
     db.query(
       "SELECT * FROM users WHERE email = ?",
       [email],
-      async (err, results) => {
+      async (
+        err: mysql.QueryError | null,
+        results:
+          | mysql.RowDataPacket[]
+          | mysql.RowDataPacket[][]
+          | mysql.OkPacket
+          | mysql.OkPacket[]
+      ) => {
         if (err) {
           console.error(
             "Erreur lors de la récupération de l'utilisateur :",
@@ -43,14 +49,14 @@ export default async function handler(
           return res.status(500).json({ error: "Erreur interne" });
         }
 
-        // Spécifier que results est un tableau d'objets de type User
-        const user = (results as mysql.RowDataPacket[])[0]; // On force les résultats comme un tableau de RowDataPacket
+        // On force les résultats comme un tableau de RowDataPacket
+        const rows = results as mysql.RowDataPacket[];
+        const user = rows[0] as User;
 
         if (!user) {
           return res.status(404).json({ error: "Utilisateur non trouvé." });
         }
 
-        // Comparer le mot de passe hashé avec le mot de passe fourni
         const match = await bcrypt.compare(password, user.password);
 
         if (match) {
