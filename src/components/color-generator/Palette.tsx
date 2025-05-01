@@ -15,6 +15,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { useRouter } from "next/navigation";
 
 import type { Swatch } from "./ColorPaletteGenerator.types";
 import SwatchEditor from "./SwatchEditor";
@@ -30,6 +31,10 @@ import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import PaletteHistory from "./PaletteHistory";
 import DraggableSwatch from "./DraggableSwatch";
 
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import FavoritePalettes from "./FavoritePalettes";
+
 export default function Palette() {
   const {
     colors,
@@ -40,24 +45,25 @@ export default function Palette() {
     setMode,
     saveToHistory,
     loadHistory,
+    saveFavorite,
   } = usePaletteStorage("analogues", "normal");
 
   const [selectedSwatchId, setSelectedSwatchId] = useState<string | null>(null);
   const [hoveredSwatchId, setHoveredSwatchId] = useState<string | null>(null);
+  const [showFavorites, setShowFavorites] = useState(false);
   const history = loadHistory();
+  const router = useRouter();
 
   const regenerate = () => {
     const baseHue = Math.floor(Math.random() * 360);
     const basePalette = generatePalette(harmony, mode, baseHue);
-
     const unlockedCount = colors.filter((c) => !c.locked).length;
 
-    // Étendre ou boucler la palette générée pour couvrir tous les non-verrouillés
     const extendedPalette = Array.from({ length: unlockedCount }, (_, i) => {
       const base = basePalette[i % basePalette.length];
       return {
         ...base,
-        id: crypto.randomUUID(), // ✅ ID unique
+        id: crypto.randomUUID(),
       };
     });
 
@@ -145,6 +151,27 @@ export default function Palette() {
     }
   };
 
+  const handleSaveToFavorites = async () => {
+    const MySwal = withReactContent(Swal);
+    const { value: name } = await MySwal.fire({
+      title: "Nom de ta palette",
+      input: "text",
+      inputPlaceholder: "Ex : Sunset Vibes",
+      confirmButtonText: "Sauvegarder",
+      showCancelButton: true,
+    });
+
+    if (name) {
+      saveFavorite(name, colors);
+      toast.success(`⭐ Palette "${name}" ajoutée aux favoris !`);
+    }
+  };
+
+  const handleOpenPreview = () => {
+    localStorage.setItem("preview_palette", JSON.stringify(colors));
+    router.push("/tools/color-palette-generator/preview");
+  };
+
   useKeyboardShortcuts({
     regenerate,
     addColor,
@@ -171,54 +198,14 @@ export default function Palette() {
     <div className="w-full mx-auto">
       <div className="flex flex-col items-center gap-4 mb-6">
         <div className="flex justify-center gap-8">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="harmony"
-              className="text-sm font-medium text-gray-700"
-            >
-              Harmonie :
-            </label>
-            <select
-              id="harmony"
-              value={harmony}
-              onChange={(e) => setHarmony(e.target.value as HarmonyType)}
-              className="border px-4 py-2 rounded"
-            >
-              {Object.keys(harmonyOptions).map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt
-                    .replace(/([A-Z])/g, " $1")
-                    .replace(/^./, (s) => s.toUpperCase())}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <label htmlFor="mode" className="text-sm font-medium text-gray-700">
-              Mode :
-            </label>
-            <select
-              id="mode"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as ModeType)}
-              className="border px-4 py-2 rounded"
-            >
-              {modeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Sélecteurs (harmony / mode) */}
         </div>
 
         <div className="bg-gray-100 text-gray-700 text-sm text-center py-2 px-4 rounded shadow-sm max-w-3xl">
           ⌨️ <strong>Raccourcis clavier</strong> :
           <span className="inline-block mx-2">A = Ajouter</span> |
           <span className="inline-block mx-2">R = Régénérer</span> |
-          <span className="inline-block mx-2">←/→ = Naviguer</span> |
-          <span className="inline-block mx-2">Suppr = Supprimer</span> |
+          <span className="inline-block mx-2">D = Supprimer</span> |
           <span className="inline-block mx-2">L = Verrouiller</span>
         </div>
       </div>
@@ -270,16 +257,59 @@ export default function Palette() {
         </SortableContext>
       </DndContext>
 
-      <div className="text-center mt-10">
+      <div className="mt-10 flex flex-col items-center gap-4">
         <button
           onClick={regenerate}
-          className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-6 py-3 rounded-lg font-semibold"
+          className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-6 py-3 rounded-xl font-semibold shadow-lg w-[250px]"
         >
           🔄 Générer une nouvelle palette
         </button>
+
+        <div className="flex gap-4">
+          <button
+            onClick={handleSaveToFavorites}
+            className="border border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5]/10 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
+          >
+            ⭐ Ajouter aux favoris
+          </button>
+          <button
+            onClick={() => setShowFavorites(true)}
+            className="border border-gray-300 text-gray-700 hover:bg-gray-100 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
+          >
+            📂 Voir mes favoris
+          </button>
+          <button
+            onClick={handleOpenPreview}
+            className="border border-indigo-400 text-indigo-600 hover:bg-indigo-50 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
+          >
+            🎨 Aperçu dans un modèle
+          </button>
+        </div>
       </div>
 
       <PaletteHistory history={history} onRestore={restoreFromHistory} />
+
+      {showFavorites && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              onClick={() => setShowFavorites(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-black"
+            >
+              ✖
+            </button>
+            <h2 className="text-xl font-semibold mb-4 text-center">
+              ⭐ Palettes favorites
+            </h2>
+            <FavoritePalettes
+              onLoad={(colors) => {
+                setColors(colors);
+                setShowFavorites(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

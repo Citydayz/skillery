@@ -11,19 +11,21 @@ export default function PaletteHistory({
   onRestore: (index: number) => void;
 }) {
   return (
-    <div className="mt-16">
-      <h2 className="text-xl font-semibold mb-4 text-center">Historique</h2>
-      <div className="flex flex-wrap justify-center gap-4">
+    <div className="my-12 px-4">
+      <h2 className="text-center text-2xl font-semibold mb-6">
+        Historique des palettes
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {history.map((palette, idx) => (
           <div
             key={idx}
-            className="border rounded-xl p-3 bg-white shadow hover:shadow-md transition min-w-[120px]"
+            className="relative rounded-3xl bg-gray-50 p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.1)] border border-gray-200 transition hover:shadow-md hover:scale-[1.01]"
           >
-            <div className="flex flex-wrap gap-1 justify-start mb-2 max-w-[160px]">
+            <div className="flex justify-center gap-1 mb-4">
               {palette.map((color, colorIdx) => (
                 <div
                   key={`${color.id}-${idx}-${colorIdx}`}
-                  className="w-5 h-5 rounded"
+                  className="w-6 h-6 rounded-xl shadow-inner"
                   style={{
                     backgroundColor: chroma(color.hex).alpha(color.a).css(),
                   }}
@@ -35,9 +37,9 @@ export default function PaletteHistory({
             </div>
             <button
               onClick={() => onRestore(idx)}
-              className="text-xs px-3 py-1 rounded bg-[#00ADB5] text-white hover:bg-[#00cfd9] transition w-full"
+              className="w-full bg-[#00ADB5] hover:bg-[#00cfd9] text-white text-sm py-2 rounded-xl font-medium transition"
             >
-              Restaurer
+              🔁 Restaurer
             </button>
           </div>
         ))}

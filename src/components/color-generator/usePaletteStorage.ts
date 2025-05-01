@@ -9,11 +9,20 @@ import {
   harmonyOptions,
   modeOptions,
 } from "./utils";
+import { v4 as uuidv4 } from "uuid";
 
 const CURRENT_KEY = "palette_current";
 const HISTORY_KEY = "palette_history";
 const HARMONY_KEY = "palette_harmony";
 const MODE_KEY = "palette_mode";
+const FAVORITES_KEY = "palette_favorites"; // ✅ nouveau
+
+export interface FavoritePalette {
+  id: string;
+  name: string;
+  colors: Swatch[];
+  createdAt: string;
+}
 
 function validateAndFixSwatches(swatches: any[]): Swatch[] {
   const seenIds = new Set<string>();
@@ -61,6 +70,16 @@ export function usePaletteStorage(
   const [colors, setColors] = useState<Swatch[]>([]);
   const [harmony, setHarmony] = useState<HarmonyType>(initialHarmony);
   const [mode, setMode] = useState<ModeType>(initialMode);
+
+  // ✅ État des favoris
+  const [favorites, setFavorites] = useState<FavoritePalette[]>(() => {
+    try {
+      const raw = localStorage.getItem(FAVORITES_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Charger palette au démarrage
   useEffect(() => {
@@ -122,6 +141,26 @@ export function usePaletteStorage(
     }
   };
 
+  // ✅ Favoris : sauvegarde
+  const saveFavorite = (name: string, colors: Swatch[]) => {
+    const newFav: FavoritePalette = {
+      id: uuidv4(),
+      name,
+      colors,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [...favorites, newFav];
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+    setFavorites(updated);
+  };
+
+  // ✅ Favoris : suppression
+  const deleteFavorite = (id: string) => {
+    const updated = favorites.filter((f) => f.id !== id);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+    setFavorites(updated);
+  };
+
   return {
     colors,
     setColors,
@@ -131,5 +170,9 @@ export function usePaletteStorage(
     setMode,
     saveToHistory,
     loadHistory,
+    // ✅ Favoris
+    favorites,
+    saveFavorite,
+    deleteFavorite,
   };
 }

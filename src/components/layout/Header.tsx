@@ -60,12 +60,12 @@ export default function Header() {
           </Link>
 
           {/* Liens de Connexion et Inscription */}
-          <Link href="/login">
+          {/* <Link href="/login">
             <Button className="hover:text-[#00ADB5]">Connexion</Button>
           </Link>
           <Link href="/register">
             <Button className="hover:text-[#00ADB5]">Inscription</Button>
-          </Link>
+          </Link> */}
         </nav>
       </div>
     </header>
