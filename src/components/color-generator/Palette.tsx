@@ -48,11 +48,33 @@ export default function Palette() {
 
   const regenerate = () => {
     const baseHue = Math.floor(Math.random() * 360);
-    const newPalette = generatePalette(harmony, mode, baseHue);
+    const basePalette = generatePalette(harmony, mode, baseHue);
+
+    const unlockedCount = colors.filter((c) => !c.locked).length;
+
+    // Étendre ou boucler la palette générée pour couvrir tous les non-verrouillés
+    const extendedPalette = Array.from({ length: unlockedCount }, (_, i) => {
+      const base = basePalette[i % basePalette.length];
+      return {
+        ...base,
+        id: crypto.randomUUID(), // ✅ ID unique
+      };
+    });
+
     saveToHistory(colors);
-    setColors((prev) =>
-      prev.map((c, i) => (c.locked ? c : newPalette[i % newPalette.length]))
-    );
+
+    const updated: Swatch[] = [];
+    let genIndex = 0;
+
+    for (const c of colors) {
+      if (c.locked) {
+        updated.push(c);
+      } else {
+        updated.push(extendedPalette[genIndex++]);
+      }
+    }
+
+    setColors(updated);
   };
 
   const toggleLock = (id: string) => {
@@ -147,32 +169,58 @@ export default function Palette() {
 
   return (
     <div className="w-full mx-auto">
-      <div className="flex justify-center gap-4 mb-6">
-        <select
-          value={harmony}
-          onChange={(e) => setHarmony(e.target.value as HarmonyType)}
-          className="border px-4 py-2 rounded"
-        >
-          {Object.keys(harmonyOptions).map((opt) => (
-            <option key={opt} value={opt}>
-              {opt
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (s) => s.toUpperCase())}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-col items-center gap-4 mb-6">
+        <div className="flex justify-center gap-8">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="harmony"
+              className="text-sm font-medium text-gray-700"
+            >
+              Harmonie :
+            </label>
+            <select
+              id="harmony"
+              value={harmony}
+              onChange={(e) => setHarmony(e.target.value as HarmonyType)}
+              className="border px-4 py-2 rounded"
+            >
+              {Object.keys(harmonyOptions).map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt
+                    .replace(/([A-Z])/g, " $1")
+                    .replace(/^./, (s) => s.toUpperCase())}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <select
-          value={mode}
-          onChange={(e) => setMode(e.target.value as ModeType)}
-          className="border px-4 py-2 rounded"
-        >
-          {modeOptions.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt.charAt(0).toUpperCase() + opt.slice(1)}
-            </option>
-          ))}
-        </select>
+          <div className="flex items-center gap-2">
+            <label htmlFor="mode" className="text-sm font-medium text-gray-700">
+              Mode :
+            </label>
+            <select
+              id="mode"
+              value={mode}
+              onChange={(e) => setMode(e.target.value as ModeType)}
+              className="border px-4 py-2 rounded"
+            >
+              {modeOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-gray-100 text-gray-700 text-sm text-center py-2 px-4 rounded shadow-sm max-w-3xl">
+          ⌨️ <strong>Raccourcis clavier</strong> :
+          <span className="inline-block mx-2">A = Ajouter</span> |
+          <span className="inline-block mx-2">R = Régénérer</span> |
+          <span className="inline-block mx-2">←/→ = Naviguer</span> |
+          <span className="inline-block mx-2">Suppr = Supprimer</span> |
+          <span className="inline-block mx-2">L = Verrouiller</span>
+        </div>
       </div>
 
       <DndContext

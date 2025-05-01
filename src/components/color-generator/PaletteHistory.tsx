@@ -17,17 +17,19 @@ export default function PaletteHistory({
         {history.map((palette, idx) => (
           <div
             key={idx}
-            className="border rounded-xl p-2 bg-white shadow hover:shadow-md transition"
+            className="border rounded-xl p-3 bg-white shadow hover:shadow-md transition min-w-[120px]"
           >
-            <div className="flex space-x-1 mb-2">
+            <div className="flex flex-wrap gap-1 justify-start mb-2 max-w-[160px]">
               {palette.map((color, colorIdx) => (
                 <div
-                  key={`${color.id}-${idx}-${colorIdx}`} // <- clé unique corrigée
-                  className="w-6 h-6 rounded"
+                  key={`${color.id}-${idx}-${colorIdx}`}
+                  className="w-5 h-5 rounded"
                   style={{
                     backgroundColor: chroma(color.hex).alpha(color.a).css(),
                   }}
-                  title={color.hex}
+                  title={`${color.hex.toUpperCase()} (${Math.round(
+                    color.a * 100
+                  )}%)`}
                 />
               ))}
             </div>
