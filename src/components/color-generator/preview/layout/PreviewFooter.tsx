@@ -26,7 +26,7 @@ export default function PreviewFooter({ colors }: { colors: Swatch[] }) {
                 +
               </button>
             </Tooltip>
-            <Tooltip content="Supprimer une couleur" delay={0}>
+            <Tooltip content="Supprimer la dernière couleur" delay={0}>
               <button className="h-8 w-8 flex items-center justify-center rounded bg-zinc-100 hover:bg-zinc-200 transition text-xl font-semibold">
                 –
               </button>
