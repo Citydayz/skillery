@@ -35,6 +35,24 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import FavoritePalettes from "./FavoritePalettes";
 
+const harmonyLabels: Record<string, string> = {
+  analogues: "Analogues",
+  complementaire: "Complémentaire",
+  triadique: "Triadique",
+  splitComplementaire: "Split complémentaire",
+  tetradique: "Tétradique",
+  carre: "Carré",
+  doubleComplementaire: "Double complémentaire",
+  accentueAnalogue: "Accentué analogue",
+};
+
+const modeLabels: Record<string, string> = {
+  normal: "Normal",
+  pastel: "Pastel",
+  dark: "Sombre",
+  monochrome: "Monochrome",
+};
+
 export default function Palette() {
   const {
     colors,
@@ -198,7 +216,49 @@ export default function Palette() {
     <div className="w-full mx-auto">
       <div className="flex flex-col items-center gap-4 mb-6">
         <div className="flex justify-center gap-8">
-          {/* Sélecteurs (harmony / mode) */}
+          {/* Champ Harmonie */}
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="harmony"
+              className="text-sm text-gray-600 font-medium min-w-[120px] text-right"
+            >
+              Harmonie
+            </label>
+            <select
+              id="harmony"
+              value={harmony}
+              onChange={(e) => setHarmony(e.target.value as HarmonyType)}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
+            >
+              {Object.keys(harmonyOptions).map((key) => (
+                <option key={key} value={key}>
+                  {harmonyLabels[key] || key}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Champ Mode */}
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="mode"
+              className="text-sm text-gray-600 font-medium min-w-[120px] text-right"
+            >
+              Mode
+            </label>
+            <select
+              id="mode"
+              value={mode}
+              onChange={(e) => setMode(e.target.value as ModeType)}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
+            >
+              {modeOptions.map((m) => (
+                <option key={m} value={m}>
+                  {modeLabels[m] || m}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="bg-gray-100 text-gray-700 text-sm text-center py-2 px-4 rounded shadow-sm max-w-3xl">

@@ -1,4 +1,4 @@
-import type { Swatch } from "../ColorPaletteGenerator.types";
+import type { Swatch } from "../../ColorPaletteGenerator.types";
 
 export default function PreviewCard({ colors }: { colors: Swatch[] }) {
   const bg = colors[0]?.hex || "#eeeeee";
