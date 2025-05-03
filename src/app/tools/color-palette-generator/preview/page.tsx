@@ -29,7 +29,7 @@ export default function ColorPreviewPage() {
       <h1 className="text-3xl font-bold text-center mb-8">
         🎨 Aperçu de votre palette
       </h1>
-      <PalettePreview colors={colors} />
+      <PalettePreview />
       <div className="mt-10 text-center">
         <button
           onClick={() => router.push("/tools/color-palette-generator")}
