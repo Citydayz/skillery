@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 
 export function useKeyboardShortcuts({
   regenerate,

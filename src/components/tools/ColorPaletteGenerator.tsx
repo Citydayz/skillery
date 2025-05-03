@@ -1,7 +1,7 @@
 "use client";
 
 import { Toaster } from "react-hot-toast";
-import Palette from "../color-generator/Palette";
+import Palette from "../color-generator/components/Palette";
 
 export default function ColorPaletteGenerator() {
   return (

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 import {
   generatePalette,
   HarmonyType,
   ModeType,
   harmonyOptions,
   modeOptions,
-} from "./utils";
+} from "../logic/utils";
 import { v4 as uuidv4 } from "uuid";
 
 const CURRENT_KEY = "palette_current";

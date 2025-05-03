@@ -1,7 +1,7 @@
 "use client";
 
 import chroma from "chroma-js";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 
 export default function PaletteHistory({
   history,
