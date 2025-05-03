@@ -1,5 +1,5 @@
 import chroma from "chroma-js";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "./types";
 
 export const harmonyOptions = {
   analogues: [0, -10, 10, 30, -30],

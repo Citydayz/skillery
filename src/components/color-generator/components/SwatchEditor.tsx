@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import chroma from "chroma-js";
 import { HslaColorPicker } from "react-colorful";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 
 function areHslaEqual(a: any, b: any) {
   return (

@@ -2,7 +2,7 @@ import chroma from "chroma-js";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import { FiLock, FiUnlock, FiCopy, FiX, FiMove } from "react-icons/fi";
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 
 interface DraggableSwatchProps {
   swatch: Swatch;

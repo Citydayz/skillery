@@ -1,4 +1,4 @@
-import type { Swatch } from "../../ColorPaletteGenerator.types";
+import type { Swatch } from "../../types";
 
 export default function PreviewButton({ colors }: { colors: Swatch[] }) {
   const bg = colors[2]?.hex || "#00ADB5";

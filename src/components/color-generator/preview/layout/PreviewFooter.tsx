@@ -1,4 +1,4 @@
-import type { Swatch } from "../../ColorPaletteGenerator.types";
+import type { Swatch } from "../../types";
 import Tooltip from "../../../ui/Tooltips"; // adapte ce chemin si nécessaire
 
 export default function PreviewFooter({ colors }: { colors: Swatch[] }) {

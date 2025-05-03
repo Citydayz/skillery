@@ -1,4 +1,4 @@
-import { usePaletteStorage, FavoritePalette } from "./usePaletteStorage";
+import { usePaletteStorage, FavoritePalette } from "../hooks/usePaletteStorage";
 
 export default function FavoritePalettes({
   onLoad,

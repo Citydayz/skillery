@@ -1,4 +1,4 @@
-import type { Swatch } from "../../ColorPaletteGenerator.types";
+import type { Swatch } from "../../types";
 
 import PreviewCard from "../mockups/PreviewCard";
 import PreviewButton from "../mockups/PreviewButton";

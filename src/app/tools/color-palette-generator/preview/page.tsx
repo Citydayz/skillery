@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Swatch } from "@/components/color-generator/ColorPaletteGenerator.types";
+import type { Swatch } from "@/components/color-generator/types";
 import PalettePreview from "@/components/color-generator/preview/layout/PalettePreview";
 import { useRouter } from "next/navigation";
 

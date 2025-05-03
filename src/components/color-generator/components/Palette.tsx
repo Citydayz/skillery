@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useRouter } from "next/navigation";
 
-import type { Swatch } from "./ColorPaletteGenerator.types";
+import type { Swatch } from "../types";
 import SwatchEditor from "./SwatchEditor";
 import {
   generatePalette,
@@ -25,15 +25,15 @@ import {
   modeOptions,
   HarmonyType,
   ModeType,
-} from "./utils";
-import { usePaletteStorage } from "./usePaletteStorage";
-import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
+} from "../logic/utils";
+import { usePaletteStorage } from "../hooks/usePaletteStorage";
+import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import PaletteHistory from "./PaletteHistory";
 import DraggableSwatch from "./DraggableSwatch";
-
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import FavoritePalettes from "./FavoritePalettes";
+import { usePaletteStore } from "../hooks/usePaletteStore";
 
 const harmonyLabels: Record<string, string> = {
   analogues: "Analogues",
@@ -54,9 +54,13 @@ const modeLabels: Record<string, string> = {
 };
 
 export default function Palette() {
+  const colors = usePaletteStore((state) => state.palette);
+  const setColors = usePaletteStore((state) => state.setPalette);
+  const addColor = usePaletteStore((state) => state.addColor);
+  const removeColor = usePaletteStore((state) => state.removeColor);
+  const removeColorById = usePaletteStore((state) => state.removeColorById);
+
   const {
-    colors,
-    setColors,
     harmony,
     setHarmony,
     mode,
@@ -102,8 +106,8 @@ export default function Palette() {
   };
 
   const toggleLock = (id: string) => {
-    setColors((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, locked: !c.locked } : c))
+    setColors(
+      colors.map((c) => (c.id === id ? { ...c, locked: !c.locked } : c))
     );
   };
 
@@ -115,42 +119,7 @@ export default function Palette() {
   };
 
   const updateSwatch = (updated: Swatch) => {
-    setColors((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-  };
-
-  const addColor = () => {
-    const baseHue =
-      colors.length > 0 ? colors[colors.length - 1].h : Math.random() * 360;
-    const newColor = chroma.hsl(baseHue, 0.6, 0.5).hex();
-
-    let newId: string;
-    do {
-      newId = crypto.randomUUID();
-    } while (colors.some((c) => c.id === newId));
-
-    const swatch: Swatch = {
-      id: newId,
-      hex: newColor,
-      h: baseHue,
-      s: 60,
-      l: 50,
-      a: 1,
-      locked: false,
-    };
-    setColors((prev) => [...prev, swatch]);
-    toast.success("🎨 Couleur ajoutée");
-  };
-
-  const removeColor = (id: string) => {
-    if (colors.length <= 2) {
-      toast.error("Tu dois garder au moins 2 couleurs !");
-      return;
-    }
-    setColors((prev) => prev.filter((c) => c.id !== id));
-    toast("🗑️ Couleur supprimée", {
-      icon: "💥",
-      style: { background: "#fef3c7", color: "#92400e" },
-    });
+    setColors(colors.map((c) => (c.id === updated.id ? updated : c)));
   };
 
   const restoreFromHistory = (index: number) => {
@@ -186,14 +155,15 @@ export default function Palette() {
   };
 
   const handleOpenPreview = () => {
-    localStorage.setItem("preview_palette", JSON.stringify(colors));
     router.push("/tools/color-palette-generator/preview");
   };
 
   useKeyboardShortcuts({
     regenerate,
     addColor,
-    removeColor,
+    removeColor: () => {
+      if (colors.length > 2) removeColor();
+    },
     toggleLock,
     hoveredSwatchId,
     setSelectedSwatchId,
@@ -208,7 +178,7 @@ export default function Palette() {
     if (active.id !== over.id) {
       const oldIndex = colors.findIndex((c) => c.id === active.id);
       const newIndex = colors.findIndex((c) => c.id === over.id);
-      setColors((prev) => arrayMove(prev, oldIndex, newIndex));
+      setColors(arrayMove(colors, oldIndex, newIndex));
     }
   };
 
@@ -216,7 +186,6 @@ export default function Palette() {
     <div className="w-full mx-auto">
       <div className="flex flex-col items-center gap-4 mb-6">
         <div className="flex justify-center gap-8">
-          {/* Champ Harmonie */}
           <div className="flex items-center gap-2">
             <label
               htmlFor="harmony"
@@ -238,7 +207,6 @@ export default function Palette() {
             </select>
           </div>
 
-          {/* Champ Mode */}
           <div className="flex items-center gap-2">
             <label
               htmlFor="mode"
@@ -289,7 +257,7 @@ export default function Palette() {
                     prev === color.id ? null : color.id
                   )
                 }
-                onRemove={() => removeColor(color.id)}
+                onRemove={() => removeColorById(color.id)}
                 onToggleLock={() => toggleLock(color.id)}
                 onCopy={() => copyToClipboard(color)}
                 isSelected={selectedSwatchId === color.id}
