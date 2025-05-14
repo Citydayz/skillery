@@ -1,345 +1,377 @@
+"use client";
+
 import Hero from "@/components/homepage/Hero";
+import ScrollAnimation from "@/components/ui/ScrollAnimation";
+import AnimatedAccordion from "@/components/ui/AnimatedAccordion";
+import StickyCTA from "@/components/ui/StickyCTA";
+import ToolCard from "@/components/ui/ToolCard";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+import {
+  FiBriefcase,
+  FiClock,
+  FiDollarSign,
+  FiUsers,
+  FiImage,
+  FiLayers,
+  FiPackage,
+  FiZap,
+  FiHome,
+  FiStar,
+} from "react-icons/fi";
 
 export default function HomePage() {
+  const handleToolsClick = () => {
+    toast.success("Découvrez nos outils disponibles !", {
+      duration: 4000,
+      position: "bottom-center",
+    });
+  };
+
   return (
     <div className="bg-white text-black w-full overflow-x-hidden">
       {/* HERO */}
       <Hero />
 
-      {/* INTÉGRATIONS */}
-      <section className="px-6 py-24 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-sm text-gray-400 uppercase tracking-wider">
-              Intégrations
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-              Connecte les outils que tu utilises déjà
+      {/* PROBLÈME */}
+      <ScrollAnimation>
+        <section className="px-6 py-24 bg-gray-50">
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Trop d'outils, trop de clics, trop de pertes de temps.
             </h2>
-            <h3>Test</h3>
+            <p className="text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Trello pour les tâches, Notion pour la doc, Drive pour les
+              fichiers, Slack pour la com'... La vie d'un freelance est un vrai
+              parcours du combattant entre les onglets et les notifications. Et
+              si on simplifiait tout ça ?
+            </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 place-items-center">
-            {[
-              "Notion",
-              "Slack",
-              "Google Drive",
-              "Figma",
-              "Outlook",
-              "Gmail",
-              "Trello",
-              "Linear",
-              "Salesforce",
-            ].map((tool, i) => (
-              <div
-                key={i}
-                className="aspect-square w-full max-w-[80px] bg-white border border-gray-200 shadow-md rounded-xl flex items-center justify-center"
-              >
-                <span className="text-xs text-gray-600 font-medium">
-                  {tool}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      </ScrollAnimation>
 
-      {/* SÉCURITÉ */}
+      {/* SOLUTION */}
+      <ScrollAnimation>
+        <section className="px-6 py-24 bg-white">
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Une interface unique pour tout gérer
+            </h2>
+            <p className="text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Skillery centralise vos projets, votre temps, vos factures, vos
+              fichiers et plus encore. Un seul endroit pour tout gérer, sans
+              perdre de temps à naviguer entre les applications.
+            </p>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+      {/* FONCTIONNALITÉS */}
       <section className="px-6 py-24 bg-gray-50">
-        <div className="max-w-5xl mx-auto text-center">
-          <span className="text-sm text-gray-400 uppercase tracking-wider">
-            Sécurité
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-6">
-            Tes données, en sécurité
-          </h2>
-          <p className="text-gray-600 max-w-3xl mx-auto mb-12">
-            Skillery respecte les normes RGPD. Toutes les données sont chiffrées
-            et hébergées en Europe. Tu es maître de tes informations, en toute
-            transparence.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: "🔐",
-                title: "Chiffrement avancé",
-                text: "Toutes tes données sont chiffrées côté client et serveur.",
-              },
-              {
-                icon: "📍",
-                title: "Hébergement en Europe",
-                text: "Serveurs localisés en France pour un meilleur respect du RGPD.",
-              },
-              {
-                icon: "🛡️",
-                title: "Confidentialité totale",
-                text: "Nous ne revendons ni analysons jamais tes contenus.",
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="bg-white p-6 rounded-2xl shadow text-left"
-              >
-                <div className="text-3xl mb-4">{item.icon}</div>
-                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES CLÉS */}
-      <section className="px-6 py-24 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-sm text-gray-400 uppercase tracking-wider">
-              Fonctionnalités
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-              Ce que Skillery fait pour toi
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-12">
+          <ScrollAnimation>
+            <div className="text-center mb-12">
+              <span className="text-sm text-gray-400 uppercase tracking-wider">
+                Fonctionnalités
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mt-2">
+                Tout ce dont vous avez besoin
+              </h2>
+            </div>
+          </ScrollAnimation>
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                title: "Centralisation",
-                desc: "Tous tes outils accessibles depuis une seule interface claire et rapide.",
+                icon: <FiBriefcase className="w-8 h-8" />,
+                title: "Gestion de projet",
+                desc: "Suivez vos projets, tâches et deadlines en un coup d'œil.",
               },
               {
-                title: "Personnalisation",
-                desc: "Adapte ton espace selon tes préférences, avec des modules flexibles.",
+                icon: <FiClock className="w-8 h-8" />,
+                title: "Time tracking",
+                desc: "Mesurez votre temps de travail et optimisez votre productivité.",
               },
               {
+                icon: <FiDollarSign className="w-8 h-8" />,
+                title: "Facturation",
+                desc: "Générez et envoyez vos factures en quelques clics.",
+              },
+              {
+                icon: <FiUsers className="w-8 h-8" />,
                 title: "Collaboration",
-                desc: "Travaille avec ton équipe en temps réel, sans friction.",
+                desc: "Travaillez en équipe sans friction, même à distance.",
+              },
+              {
+                icon: <FiImage className="w-8 h-8" />,
+                title: "Compression d'image",
+                desc: "Optimisez vos images sans perdre en qualité.",
+              },
+              {
+                icon: <FiLayers className="w-8 h-8" />,
+                title: "Générateur de palettes",
+                desc: "Créez des palettes de couleurs harmonieuses.",
               },
             ].map((feat, i) => (
-              <div key={i} className="bg-gray-50 rounded-2xl p-6 shadow-md">
-                <h3 className="text-xl font-bold mb-2">{feat.title}</h3>
-                <p className="text-gray-600 text-sm">{feat.desc}</p>
+              <ScrollAnimation key={i} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ scale: 1.03, y: -5 }}
+                  className="bg-white/30 backdrop-blur-xl rounded-2xl border border-white/10 shadow-lg shadow-black/5 p-6 hover:bg-white/40 transition-all"
+                >
+                  <div className="text-[#00ADB5] mb-4">{feat.icon}</div>
+                  <h3 className="text-xl font-bold mb-2">{feat.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {feat.desc}
+                  </p>
+                </motion.div>
+              </ScrollAnimation>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* OUTILS DISPONIBLES */}
+      <section className="px-6 py-24 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <ScrollAnimation>
+            <div className="text-center mb-12">
+              <span className="text-sm text-gray-400 uppercase tracking-wider">
+                Outils disponibles
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mt-2">
+                Essayez nos outils dès maintenant
+              </h2>
+            </div>
+          </ScrollAnimation>
+          <div className="grid md:grid-cols-2 gap-8">
+            <ScrollAnimation>
+              <ToolCard
+                title="Compresseur d'image"
+                desc="Optimise, redimensionne et convertit tes images en WebP pour le web."
+                link="/tools/image-converter"
+              />
+            </ScrollAnimation>
+            <ScrollAnimation delay={0.1}>
+              <ToolCard
+                title="Générateur de palettes"
+                desc="Crée des gammes de couleurs cohérentes à partir d'un ton ou hex."
+                link="/tools/color-palette-generator"
+              />
+            </ScrollAnimation>
+          </div>
+        </div>
+      </section>
+
+      {/* TÉMOIGNAGES */}
+      <section className="px-6 py-24 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <ScrollAnimation>
+            <div className="text-center mb-12">
+              <span className="inline-block bg-[#00ADB5]/10 text-[#00ADB5] px-3 py-1 rounded-full text-sm mb-4">
+                Top avis utilisateurs
+              </span>
+              <div className="flex justify-center items-center gap-2 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <FiStar className="w-6 h-6 text-yellow-400" />
+                  </motion.div>
+                ))}
               </div>
+              <p className="text-gray-600 mb-4">4,9/5 sur +150 utilisateurs</p>
+              <h2 className="text-3xl md:text-4xl font-bold mt-2">
+                Ils adorent Skillery
+              </h2>
+            </div>
+          </ScrollAnimation>
+          <div className="columns-1 sm:columns-2 md:columns-3 gap-6 [column-fill:_balance]">
+            {[...Array(6)].map((_, i) => (
+              <ScrollAnimation key={i} delay={i * 0.1}>
+                <div className="mb-6 break-inside-avoid bg-white/30 backdrop-blur-xl rounded-2xl border border-white/10 shadow-lg shadow-black/5 p-6 hover:bg-white/40 transition-all">
+                  <p className="text-gray-600 mb-4 leading-relaxed">
+                    {i === 0 &&
+                      `"L'outil de compression d'images est génial ! J'ai réduit la taille de mon site de 60%."`}
+                    {i === 1 &&
+                      `"Le générateur de palettes m'aide à créer des designs cohérents en quelques secondes."`}
+                    {i === 2 &&
+                      `"La gestion de projet est intuitive et me fait gagner des heures chaque semaine."`}
+                    {i === 3 &&
+                      `"Le time tracking m'a permis d'optimiser mes tarifs et ma productivité."`}
+                    {i === 4 &&
+                      `"La facturation automatique est un vrai gain de temps pour mon activité."`}
+                    {i === 5 &&
+                      `"Tout est centralisé, plus besoin de jongler entre 10 applications différentes."`}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200" />
+                    <div>
+                      <p className="font-semibold">
+                        {i === 0 && "Thomas L."}
+                        {i === 1 && "Julie M."}
+                        {i === 2 && "Marc D."}
+                        {i === 3 && "Sophie R."}
+                        {i === 4 && "Lucas P."}
+                        {i === 5 && "Emma T."}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {i === 0 && "Développeur Web"}
+                        {i === 1 && "Designer UI/UX"}
+                        {i === 2 && "Product Manager"}
+                        {i === 3 && "Consultant Indépendant"}
+                        {i === 4 && "Freelance Marketing"}
+                        {i === 5 && "Directrice Artistique"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollAnimation>
             ))}
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="px-6 py-24 bg-gray-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="text-sm text-gray-400 uppercase tracking-wider">
-            FAQ
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-6">
-            Questions fréquentes
-          </h2>
-          <div className="text-left divide-y divide-gray-200">
-            {[
-              {
-                q: "Est-ce que Skillery est vraiment gratuit ?",
-                a: "Oui ! Tu peux utiliser les fonctions de base gratuitement et sans inscription.",
-              },
-              {
-                q: "Puis-je connecter tous mes outils ?",
-                a: "Nous prenons en charge les outils les plus populaires. Et d'autres arrivent très vite !",
-              },
-              {
-                q: "Où sont stockées mes données ?",
-                a: "En Europe, sur des serveurs sécurisés.",
-              },
-              {
-                q: "Skillery peut-il remplacer mon Notion ou mon Trello ?",
-                a: "Pas totalement, mais il peut les centraliser et te faire gagner du temps au quotidien.",
-              },
-            ].map((item, i) => (
-              <details key={i} className="py-4 group cursor-pointer">
-                <summary className="font-medium text-lg group-open:text-[#00ADB5] transition">
-                  {item.q}
-                </summary>
-                <p className="mt-2 text-gray-600 text-sm">{item.a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* COMMENT ÇA MARCHE */}
       <section className="px-6 py-24 bg-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <span className="text-sm text-gray-400 uppercase tracking-wider">
-            On t'explique
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-12">
-            Comment fonctionne Skillery ?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-12 text-left">
+        <div className="max-w-4xl mx-auto">
+          <ScrollAnimation>
+            <div className="text-center mb-12">
+              <span className="text-sm text-gray-400 uppercase tracking-wider">
+                FAQ
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-6">
+                Questions fréquentes
+              </h2>
+            </div>
+          </ScrollAnimation>
+          <div className="space-y-4">
             {[
               {
-                step: "1",
-                title: "Crée ton espace",
-                text: "Tu n’as besoin que d’un email. Aucun mot de passe requis.",
+                q: "L'outil de compression est-il gratuit ?",
+                a: "Oui ! Vous pouvez compresser jusqu'à 10 images par jour gratuitement. Le plan Pro offre une compression illimitée.",
               },
               {
-                step: "2",
-                title: "Connecte tes outils",
-                text: "Ajoute Notion, Slack, Drive ou n’importe quelle app pro.",
+                q: "Puis-je sauvegarder mes palettes ?",
+                a: "Absolument ! Toutes vos palettes sont sauvegardées automatiquement et accessibles depuis n'importe quel appareil.",
               },
               {
-                step: "3",
-                title: "Pilote tout depuis Skillery",
-                text: "Un seul hub, une interface claire, des raccourcis efficaces.",
+                q: "Skillery remplace-t-il mes outils actuels ?",
+                a: "Non, Skillery s'intègre avec vos outils existants pour les centraliser et les rendre plus efficaces.",
+              },
+              {
+                q: "Comment mes données sont-elles sécurisées ?",
+                a: "Toutes vos données sont chiffrées et hébergées en Europe selon les normes RGPD. Nous ne partageons jamais vos informations.",
               },
             ].map((item, i) => (
-              <div key={i} className="bg-gray-50 rounded-2xl p-6 shadow">
-                <div className="text-4xl font-bold text-[#00ADB5] mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TÉMOIGNAGES BENTO */}
-      <section className="px-6 py-24 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-sm text-gray-400 uppercase tracking-wider">
-              Témoignages
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-              Ils adorent Skillery
-            </h2>
-          </div>
-          <div className="columns-1 sm:columns-2 md:columns-3 gap-6 [column-fill:_balance]">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="mb-6 break-inside-avoid bg-white rounded-2xl p-6 shadow-md"
-              >
-                <p className="text-gray-600 mb-4">
-                  {i === 0 &&
-                    `"Skillery m'a permis de gagner un temps fou en centralisant mes outils. Un indispensable."`}
-                  {i === 1 &&
-                    `"Un outil essentiel pour gérer mes tâches plus efficacement. Je recommande !"`}
-                  {i === 2 &&
-                    `"La vue d'ensemble me permet de mieux planifier mes journées. Très intuitif."`}
-                  {i === 3 &&
-                    `"J'utilise Skillery tous les jours. Les automatisations me font gagner un temps fou."`}
-                  {i === 4 &&
-                    `"Très bon outil, interface claire et outils puissants. Je recommande à 100%."`}
-                  {i === 5 &&
-                    `"L'outil vidéo intégré m'a bluffé. Il simplifie toute la communication interne."`}
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200" />
-                  <div>
-                    <p className="font-semibold">
-                      {i === 0 && "John D."}
-                      {i === 1 && "Sarah W."}
-                      {i === 2 && "Sam J."}
-                      {i === 3 && "Daniela T."}
-                      {i === 4 && "Alex M."}
-                      {i === 5 && "Claire B."}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {i === 0 && "Marketing Lead"}
-                      {i === 1 && "UX Designer"}
-                      {i === 2 && "Product Manager"}
-                      {i === 3 && "Operations Manager"}
-                      {i === 4 && "Développeur freelance"}
-                      {i === 5 && "RH & Communication"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ScrollAnimation key={i} delay={i * 0.1}>
+                <AnimatedAccordion title={item.q}>{item.a}</AnimatedAccordion>
+              </ScrollAnimation>
             ))}
           </div>
         </div>
       </section>
 
       {/* PRICING */}
-      <section className="px-6 py-24 bg-white">
+      <section className="px-6 py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto text-center">
-          <span className="text-sm text-gray-400 uppercase tracking-wider">
-            Tarifs
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-4">
-            Des plans simples pour tous les besoins
-          </h2>
+          <ScrollAnimation>
+            <span className="text-sm text-gray-400 uppercase tracking-wider">
+              Tarifs
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-4">
+              Des plans simples pour tous les besoins
+            </h2>
+          </ScrollAnimation>
           <div className="grid md:grid-cols-3 gap-8 text-left mt-12">
             {[
               {
+                icon: <FiPackage className="w-8 h-8" />,
                 title: "Gratuit",
                 price: "0€",
                 features: [
-                  "Accès aux outils de base",
-                  "Sans inscription",
-                  "Utilisation illimitée",
+                  "Compression d'images (10/jour)",
+                  "Générateur de palettes basique",
+                  "Gestion de projet simple",
                 ],
               },
               {
+                icon: <FiZap className="w-8 h-8" />,
                 title: "Pro",
                 price: "9€/mois",
                 features: [
-                  "Outils premium",
-                  "Support prioritaire",
-                  "Personnalisation avancée",
+                  "Compression illimitée",
+                  "Palettes illimitées",
+                  "Time tracking avancé",
+                  "Facturation automatique",
                 ],
               },
               {
+                icon: <FiHome className="w-8 h-8" />,
                 title: "Entreprise",
                 price: "Sur devis",
                 features: [
-                  "Équipe & multi-utilisateurs",
+                  "Tout le plan Pro",
+                  "Multi-utilisateurs",
                   "Support dédié",
-                  "Connecteurs sur-mesure",
+                  "API personnalisée",
                 ],
               },
             ].map((plan, i) => (
-              <div
-                key={i}
-                className={`relative rounded-2xl p-8 shadow-xl border transition-all bg-white ${
-                  plan.title === "Pro"
-                    ? "border-[#00ADB5] scale-[1.03] z-10"
-                    : "border-gray-200 bg-gray-50"
-                }`}
-              >
-                <h3 className="text-lg font-bold mb-1">{plan.title}</h3>
-                <p className="text-3xl font-bold text-[#00ADB5] mb-4">
-                  {plan.price}
-                </p>
-                <ul className="text-gray-600 mb-6 space-y-2 text-sm">
-                  {plan.features.map((feat, j) => (
-                    <li key={j}>✓ {feat}</li>
-                  ))}
-                </ul>
-                <button className="w-full py-3 px-4 rounded-xl bg-[#00ADB5] text-white font-semibold hover:bg-[#00cfd9] transition">
-                  Choisir ce plan
-                </button>
-              </div>
+              <ScrollAnimation key={i} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  className={`relative rounded-2xl p-8 bg-white/30 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/5 hover:bg-white/40 transition-all ${
+                    plan.title === "Pro"
+                      ? "border-[#00ADB5] scale-[1.03] z-10"
+                      : "border-white/10"
+                  }`}
+                >
+                  <div className="text-[#00ADB5] mb-4">{plan.icon}</div>
+                  <h3 className="text-lg font-bold mb-1">{plan.title}</h3>
+                  <p className="text-3xl font-bold text-[#00ADB5] mb-4">
+                    {plan.price}
+                  </p>
+                  <ul className="text-gray-600 mb-6 space-y-2 text-sm">
+                    {plan.features.map((feat, j) => (
+                      <li key={j} className="flex items-center gap-2">
+                        <FiStar className="w-4 h-4 text-[#00ADB5]" />
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full py-3 px-4 rounded-xl bg-[#00ADB5] text-white font-semibold hover:bg-[#00cfd9] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]">
+                    Choisir ce plan
+                  </button>
+                </motion.div>
+              </ScrollAnimation>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA FINAL */}
-      <section className="px-6 py-24 text-center bg-gray-50">
-        <h2 className="text-3xl font-bold mb-4">
-          Passe à la vitesse supérieure
-        </h2>
-        <p className="text-gray-600 mb-8">
-          Gagne du temps, reste focus sur l'essentiel. Skillery s'occupe du
-          reste.
-        </p>
-        <a
-          href="/tools/image-converter"
-          className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-8 py-4 rounded-xl font-semibold text-lg transition"
-        >
-          Commencer maintenant
-        </a>
-      </section>
+      <ScrollAnimation>
+        <section className="px-6 py-24 text-center bg-white">
+          <h2 className="text-3xl font-bold mb-4">
+            Gagne du temps, reste focus sur l'essentiel
+          </h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            Découvrez comment Skillery peut transformer votre façon de
+            travailler.
+          </p>
+          <a
+            href="/tools/image-converter"
+            className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-8 py-4 rounded-xl font-semibold text-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
+          >
+            Commencer maintenant
+          </a>
+        </section>
+      </ScrollAnimation>
+
+      {/* STICKY CTA */}
+      <StickyCTA />
     </div>
   );
 }
