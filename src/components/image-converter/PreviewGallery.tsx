@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_TOTAL_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_FILES = 20;
 
 export default function PreviewGallery({
   files,
@@ -24,9 +29,68 @@ export default function PreviewGallery({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "converting" | "ready">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Nettoyage des URLs d'aperçu
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
+  // Validation des fichiers
+  const validateFiles = (newFiles: File[]) => {
+    const totalSize = newFiles.reduce((acc, file) => acc + file.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE) {
+      toast.error(
+        `La taille totale des fichiers ne peut pas dépasser ${
+          MAX_TOTAL_SIZE / (1024 * 1024)
+        }MB`
+      );
+      return false;
+    }
+    if (newFiles.length > MAX_FILES) {
+      toast.error(
+        `Vous ne pouvez pas convertir plus de ${MAX_FILES} fichiers à la fois`
+      );
+      return false;
+    }
+    for (const file of newFiles) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(
+          `Le fichier ${file.name} dépasse la taille maximale de ${
+            MAX_FILE_SIZE / (1024 * 1024)
+          }MB`
+        );
+        return false;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error(`Le fichier ${file.name} n'est pas une image valide`);
+        return false;
+      }
+    }
+    return true;
+  };
 
   useEffect(() => {
+    if (files.length === 0) {
+      setPreviews([]);
+      setSizes([]);
+      setStatus("idle");
+      return;
+    }
+
+    if (!validateFiles(files)) {
+      return;
+    }
+
     const convert = async () => {
+      // Annuler la conversion précédente si elle existe
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
       setLoading(true);
       setStatus("converting");
 
@@ -34,70 +98,88 @@ export default function PreviewGallery({
       const previewUrls: string[] = [];
       const sizesTemp: { original: number; converted: number }[] = [];
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const image = new Image();
-        const url = URL.createObjectURL(file);
-        image.src = url;
+      try {
+        for (let i = 0; i < files.length; i++) {
+          if (abortControllerRef.current.signal.aborted) {
+            throw new Error("Conversion annulée");
+          }
 
-        await new Promise((resolve) => {
-          image.onload = () => {
-            const canvas = document.createElement("canvas");
-            const scale = Math.min(options.maxWidth / image.width, 1);
-            canvas.width = image.width * scale;
-            canvas.height = image.height * scale;
+          const file = files[i];
+          const image = new Image();
+          const url = URL.createObjectURL(file);
+          image.src = url;
 
-            const ctx = canvas.getContext("2d");
-            ctx?.drawImage(image, 0, 0, canvas.width, canvas.height);
+          await new Promise((resolve, reject) => {
+            image.onload = () => {
+              const canvas = document.createElement("canvas");
+              const scale = Math.min(options.maxWidth / image.width, 1);
+              canvas.width = image.width * scale;
+              canvas.height = image.height * scale;
 
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  const originalSize = file.size;
-                  const convertedSize = blob.size;
-                  sizesTemp.push({
-                    original: originalSize,
-                    converted: convertedSize,
-                  });
+              const ctx = canvas.getContext("2d");
+              if (!ctx) {
+                reject(new Error("Impossible de créer le contexte canvas"));
+                return;
+              }
 
-                  const fileBaseName = options.prefix?.trim()
-                    ? `${options.prefix}${files.length > 1 ? `-${i + 1}` : ""}`
-                    : file.name.split(".").slice(0, -1).join(".");
+              ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-                  const convertedFile = new File(
-                    [blob],
-                    `${fileBaseName}.${options.format}`,
-                    { type: `image/${options.format}` }
-                  );
-                  converted.push(convertedFile);
-                  previewUrls.push(URL.createObjectURL(blob));
-                }
-                resolve(null);
-              },
-              `image/${options.format}`,
-              options.quality
-            );
-          };
-        });
+              canvas.toBlob(
+                (blob) => {
+                  if (blob) {
+                    const originalSize = file.size;
+                    const convertedSize = blob.size;
+                    sizesTemp.push({
+                      original: originalSize,
+                      converted: convertedSize,
+                    });
 
-        URL.revokeObjectURL(url);
+                    const fileBaseName = options.prefix?.trim()
+                      ? `${options.prefix}${
+                          files.length > 1 ? `-${i + 1}` : ""
+                        }`
+                      : file.name.split(".").slice(0, -1).join(".");
+
+                    const convertedFile = new File(
+                      [blob],
+                      `${fileBaseName}.${options.format}`,
+                      { type: `image/${options.format}` }
+                    );
+                    converted.push(convertedFile);
+                    previewUrls.push(URL.createObjectURL(blob));
+                  }
+                  resolve(null);
+                },
+                `image/${options.format}`,
+                options.quality
+              );
+            };
+
+            image.onerror = () => {
+              reject(new Error("Erreur lors du chargement de l'image"));
+            };
+          });
+
+          URL.revokeObjectURL(url);
+        }
+
+        setConvertedFiles(converted);
+        setPreviews(previewUrls);
+        setSizes(sizesTemp);
+        setStatus("ready");
+      } catch (error) {
+        if (error instanceof Error && error.message !== "Conversion annulée") {
+          toast.error("Une erreur est survenue lors de la conversion");
+        }
+        setStatus("idle");
+      } finally {
+        setLoading(false);
+        abortControllerRef.current = null;
       }
-
-      setConvertedFiles(converted);
-      setSizes(sizesTemp);
-      setPreviews(previewUrls);
-      setStatus("ready");
-      setLoading(false);
     };
 
-    if (files.length > 0) {
-      convert();
-    } else {
-      setPreviews([]);
-      setSizes([]);
-      setStatus("idle");
-    }
-  }, [files, options]);
+    convert();
+  }, [files, options, setConvertedFiles, setLoading]);
 
   if (files.length === 0) return null;
 
@@ -105,7 +187,7 @@ export default function PreviewGallery({
     <div className="bg-white border border-gray-100 rounded-2xl shadow-lg p-6">
       <h2 className="text-2xl font-semibold text-[#00ADB5] mb-4">Aperçu</h2>
       <p className="text-lg text-gray-500 text-center mb-4">
-        💡 Clique sur une image pour l’agrandir et voir sa qualité finale.
+        💡 Clique sur une image pour l'agrandir et voir sa qualité finale.
       </p>
 
       {status === "converting" && (

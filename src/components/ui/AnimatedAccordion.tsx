@@ -1,45 +1,76 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { forwardRef, HTMLAttributes, useState } from "react";
+import { FiChevronDown } from "react-icons/fi";
 
-interface AccordionProps {
+interface AnimatedAccordionProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
-  children: React.ReactNode;
+  isOpen?: boolean;
+  onToggle?: () => void;
+  className?: string;
 }
 
-export default function AnimatedAccordion({ title, children }: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export const AnimatedAccordion = forwardRef<
+  HTMLDivElement,
+  AnimatedAccordionProps
+>(
+  (
+    { children, title, isOpen: controlledIsOpen, onToggle, className = "" },
+    ref
+  ) => {
+    const [uncontrolledIsOpen, setUncontrolledIsOpen] = useState(false);
+    const isOpen = controlledIsOpen ?? uncontrolledIsOpen;
+    const isControlled = controlledIsOpen !== undefined;
 
-  return (
-    <div className="border-b border-gray-200">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full py-4 flex items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5] rounded-lg"
-        aria-expanded={isOpen}
+    const handleToggle = () => {
+      if (!isControlled) {
+        setUncontrolledIsOpen(!uncontrolledIsOpen);
+      }
+      onToggle?.();
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          border border-gray-200 rounded-lg
+          ${className}
+        `}
       >
-        <span className="font-medium text-lg">{title}</span>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+        <button
+          type="button"
+          className={`
+            flex w-full items-center justify-between
+            px-4 py-3 text-left
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+            ${isOpen ? "border-b border-gray-200" : ""}
+          `}
+          onClick={handleToggle}
+          aria-expanded={isOpen}
+          aria-controls={`accordion-content-${title}`}
         >
-          <ChevronDownIcon className="w-5 h-5 text-gray-500" />
-        </motion.div>
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="pb-4 text-gray-600 text-sm">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+          <span className="text-sm font-medium text-gray-900">{title}</span>
+          <FiChevronDown
+            className={`
+              h-5 w-5 text-gray-500
+              transform transition-transform duration-200
+              ${isOpen ? "rotate-180" : ""}
+            `}
+            aria-hidden="true"
+          />
+        </button>
+        <div
+          id={`accordion-content-${title}`}
+          className={`
+            overflow-hidden transition-all duration-200
+            ${isOpen ? "max-h-96" : "max-h-0"}
+          `}
+        >
+          <div className="px-4 py-3 text-sm text-gray-700">{children}</div>
+        </div>
+      </div>
+    );
+  }
+);
+
+AnimatedAccordion.displayName = "AnimatedAccordion";

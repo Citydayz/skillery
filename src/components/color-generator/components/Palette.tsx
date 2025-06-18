@@ -2,7 +2,7 @@
 
 import chroma from "chroma-js";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   DndContext,
   closestCenter,
@@ -58,120 +58,138 @@ const modeLabels: Record<string, string> = {
   monochrome: "Monochrome",
 };
 
+const MySwal = withReactContent(Swal);
+
 export default function Palette() {
-  const colors = usePaletteStore((state) => state.palette);
-  const setColors = usePaletteStore((state) => state.setPalette);
-  const harmony = usePaletteStore((state) => state.harmony);
-  const setHarmony = usePaletteStore((state) => state.setHarmony);
-  const mode = usePaletteStore((state) => state.mode);
-  const setMode = usePaletteStore((state) => state.setMode);
-
-  const { saveToHistory, loadHistory, saveFavorite } = usePaletteStorage(
-    "analogues",
-    "normal"
-  );
-
+  const router = useRouter();
   const [selectedSwatchId, setSelectedSwatchId] = useState<string | null>(null);
   const [hoveredSwatchId, setHoveredSwatchId] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
-  const history = loadHistory();
-  const router = useRouter();
 
-  const regenerate = () => {
+  const {
+    colors,
+    setColors,
+    harmony,
+    setHarmony,
+    mode,
+    setMode,
+    history,
+    addToHistory,
+    restoreFromHistory,
+    favorites,
+    addToFavorites,
+    removeFromFavorites,
+  } = usePaletteStorage("analogues", "normal");
+
+  // Optimisation des capteurs pour le drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  // Mémoisation des options de tri
+  const sortableItems = useMemo(() => colors.map((c) => c.id), [colors]);
+
+  const handleDragEnd = useCallback(
+    (event: any) => {
+      const { active, over } = event;
+      if (active.id !== over.id) {
+        setColors((items) => {
+          const oldIndex = items.findIndex((item) => item.id === active.id);
+          const newIndex = items.findIndex((item) => item.id === over.id);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
+    },
+    [setColors]
+  );
+
+  const handleRegenerate = useCallback(() => {
     const baseHue = Math.floor(Math.random() * 360);
-    const basePalette = generatePalette(harmony, mode, baseHue);
+    const generated = generatePalette(harmony, mode, baseHue);
+
     const unlockedCount = colors.filter((c) => !c.locked).length;
-
-    const extendedPalette = Array.from({ length: unlockedCount }, (_, i) => {
-      const base = basePalette[i % basePalette.length];
-      return {
-        ...base,
-        id: crypto.randomUUID(),
-      };
+    const extended = Array.from({ length: unlockedCount }, (_, i) => {
+      const base = generated[i % generated.length];
+      return { ...base, id: crypto.randomUUID() };
     });
 
-    saveToHistory(colors);
-
-    const updated: Swatch[] = [];
-    let genIndex = 0;
-
-    for (const c of colors) {
-      updated.push(c.locked ? c : extendedPalette[genIndex++]);
-    }
-
+    const updated = colors.map((c) => (c.locked ? c : extended.shift()!));
     setColors(updated);
-  };
+    addToHistory(updated);
+  }, [colors, harmony, mode, setColors, addToHistory]);
 
-  const handleAddColor = () => {
-    const updated = addSwatch(colors, harmony, mode);
+  const handleAddColor = useCallback(() => {
+    const baseHue = colors.length
+      ? colors[colors.length - 1].h
+      : Math.random() * 360;
+    const newColor = generatePalette(harmony, mode, baseHue)[0];
+    const swatch: Swatch = { ...newColor, id: crypto.randomUUID() };
+    const updated = [...colors, swatch];
     setColors(updated);
-    toast.success("🎨 Couleur ajoutée");
-  };
+    addToHistory(updated);
+  }, [colors, harmony, mode, setColors, addToHistory]);
 
-  const handleRemoveColor = (id?: string) => {
-    const updated = removeSwatch(colors, id);
-    if (updated.length === colors.length) {
-      toast.error("Tu dois garder au moins 2 couleurs !");
-      return;
-    }
-    setColors(updated);
-    toast("🗑️ Couleur supprimée", {
-      icon: "💥",
-      style: { background: "#fef3c7", color: "#92400e" },
-    });
-  };
+  const handleRemoveColor = useCallback(
+    (id: string) => {
+      if (colors.length <= 2) {
+        toast.error("Une palette doit contenir au moins 2 couleurs");
+        return;
+      }
+      const updated = colors.filter((c) => c.id !== id);
+      setColors(updated);
+      addToHistory(updated);
+    },
+    [colors, setColors, addToHistory]
+  );
 
-  const handleToggleLock = (id: string) => {
-    const updated = toggleSwatchLock(colors, id);
-    setColors(updated);
-  };
+  const handleToggleLock = useCallback(
+    (id: string) => {
+      const updated = colors.map((c) =>
+        c.id === id ? { ...c, locked: !c.locked } : c
+      );
+      setColors(updated);
+      addToHistory(updated);
+    },
+    [colors, setColors, addToHistory]
+  );
 
-  const handleCopy = (color: Swatch) => {
-    const { hex, a } = color;
-    const hexWithAlpha = chroma(hex).alpha(a).hex("rgba");
-    navigator.clipboard.writeText(hexWithAlpha);
-    toast.success(`${hexWithAlpha} copié`);
-  };
-
-  const handleUpdateSwatch = (updated: Swatch) => {
-    setColors(colors.map((c) => (c.id === updated.id ? updated : c)));
-  };
-
-  const restoreFromHistory = (index: number) => {
-    const palette = history[index];
-    if (palette) {
-      const uniquePalette = palette.map((c) => ({
-        ...c,
-        id: crypto.randomUUID(),
-      }));
-      setColors(uniquePalette);
-    }
-  };
-
-  const handleSaveToFavorites = async () => {
-    const MySwal = withReactContent(Swal);
+  const handleSaveFavorite = useCallback(async () => {
     const { value: name } = await MySwal.fire({
-      title: "Nom de ta palette",
+      title: "Nommer la palette",
       input: "text",
-      inputPlaceholder: "Ex : Sunset Vibes",
-      confirmButtonText: "Sauvegarder",
+      inputPlaceholder: "Ma palette favorite",
       showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value) {
+          return "Le nom est requis";
+        }
+        if (favorites.some((f) => f.name === value)) {
+          return "Ce nom est déjà utilisé";
+        }
+      },
     });
 
     if (name) {
-      saveFavorite(name, colors);
-      toast.success(`⭐ Palette "${name}" ajoutée aux favoris !`);
+      addToFavorites({
+        id: crypto.randomUUID(),
+        name,
+        colors,
+        createdAt: new Date().toISOString(),
+      });
+      toast.success("Palette sauvegardée dans les favoris");
     }
-  };
+  }, [colors, favorites, addToFavorites]);
 
-  const handleOpenPreview = () => {
-    router.push("/tools/color-palette-generator/preview");
-  };
-
+  // Optimisation des raccourcis clavier
   useKeyboardShortcuts({
-    regenerate,
+    regenerate: handleRegenerate,
     addColor: handleAddColor,
-    removeColor: () => handleRemoveColor(),
+    removeColor: handleRemoveColor,
     toggleLock: handleToggleLock,
     hoveredSwatchId,
     setSelectedSwatchId,
@@ -179,69 +197,54 @@ export default function Palette() {
     restoreFromHistory,
   });
 
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = colors.findIndex((c) => c.id === active.id);
-      const newIndex = colors.findIndex((c) => c.id === over.id);
-      setColors(arrayMove(colors, oldIndex, newIndex));
-    }
-  };
-
   return (
-    <div className="w-full mx-auto">
-      <div className="flex flex-col items-center gap-4 mb-6">
-        <div className="flex justify-center gap-8">
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="harmony"
-              className="text-sm text-gray-600 font-medium min-w-[120px] text-right"
-            >
-              Harmonie
-            </label>
-            <select
-              id="harmony"
-              value={harmony}
-              onChange={(e) => setHarmony(e.target.value as HarmonyType)}
-              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
-            >
-              {Object.keys(harmonyOptions).map((key) => (
-                <option key={key} value={key}>
-                  {harmonyLabels[key] || key}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="mode"
-              className="text-sm text-gray-600 font-medium min-w-[120px] text-right"
-            >
-              Mode
-            </label>
-            <select
-              id="mode"
-              value={mode}
-              onChange={(e) => setMode(e.target.value as ModeType)}
-              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00ADB5] focus:border-transparent"
-            >
-              {modeOptions.map((m) => (
-                <option key={m} value={m}>
-                  {modeLabels[m] || m}
-                </option>
-              ))}
-            </select>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-4 items-center justify-between">
+        <div className="flex flex-wrap gap-4">
+          <select
+            value={harmony}
+            onChange={(e) => setHarmony(e.target.value as HarmonyType)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
+          >
+            {Object.entries(harmonyLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value as ModeType)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00ADB5]"
+          >
+            {Object.entries(modeLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="bg-gray-100 text-gray-700 text-sm text-center py-2 px-4 rounded shadow-sm max-w-3xl">
-          ⌨️ <strong>Raccourcis clavier</strong> :
-          <span className="inline-block mx-2">A = Ajouter</span> |
-          <span className="inline-block mx-2">R = Régénérer</span> |
-          <span className="inline-block mx-2">D = Supprimer</span> |
-          <span className="inline-block mx-2">L = Verrouiller</span>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+          >
+            Historique
+          </button>
+          <button
+            onClick={() => setShowFavorites(!showFavorites)}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+          >
+            Favoris
+          </button>
+          <button
+            onClick={handleSaveFavorite}
+            className="px-4 py-2 bg-[#00ADB5] hover:bg-[#00cfd9] text-white rounded-lg transition"
+          >
+            Sauvegarder
+          </button>
         </div>
       </div>
 
@@ -251,99 +254,59 @@ export default function Palette() {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={colors.map((c) => c.id)}
+          items={sortableItems}
           strategy={verticalListSortingStrategy}
         >
-          <div className="flex flex-wrap justify-center gap-4">
-            {colors.map((color) => (
+          <div className="space-y-4">
+            {colors.map((swatch) => (
               <DraggableSwatch
-                key={color.id}
-                swatch={color}
-                onClick={() =>
-                  setSelectedSwatchId((prev) =>
-                    prev === color.id ? null : color.id
-                  )
-                }
-                onRemove={() => handleRemoveColor(color.id)}
-                onToggleLock={() => handleToggleLock(color.id)}
-                onCopy={() => handleCopy(color)}
-                isSelected={selectedSwatchId === color.id}
-                onHover={() => setHoveredSwatchId(color.id)}
-                onHoverOut={() =>
-                  setHoveredSwatchId((prev) =>
-                    prev === color.id ? null : prev
-                  )
-                }
-              >
-                <SwatchEditor
-                  swatch={color}
-                  onChange={handleUpdateSwatch}
-                  onClose={() => setSelectedSwatchId(null)}
-                />
-              </DraggableSwatch>
+                key={swatch.id}
+                swatch={swatch}
+                isSelected={selectedSwatchId === swatch.id}
+                onSelect={() => setSelectedSwatchId(swatch.id)}
+                onHover={() => setHoveredSwatchId(swatch.id)}
+                onUnhover={() => setHoveredSwatchId(null)}
+                onRemove={() => handleRemoveColor(swatch.id)}
+                onToggleLock={() => handleToggleLock(swatch.id)}
+              />
             ))}
-            <div
-              onClick={handleAddColor}
-              className="w-[240px] h-[320px] border-2 border-dashed border-[#00ADB5] flex items-center justify-center text-4xl text-[#00ADB5] rounded-xl cursor-pointer hover:bg-[#00ADB5]/10 transition"
-            >
-              +
-            </div>
           </div>
         </SortableContext>
       </DndContext>
 
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <button
-          onClick={regenerate}
-          className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-6 py-3 rounded-xl font-semibold shadow-lg w-[250px]"
-        >
-          🔄 Générer une nouvelle palette
-        </button>
+      {selectedSwatchId && (
+        <SwatchEditor
+          swatch={colors.find((c) => c.id === selectedSwatchId)!}
+          onChange={(updated) => {
+            const newColors = colors.map((c) =>
+              c.id === selectedSwatchId ? updated : c
+            );
+            setColors(newColors);
+            addToHistory(newColors);
+          }}
+          onClose={() => setSelectedSwatchId(null)}
+        />
+      )}
 
-        <div className="flex gap-4">
-          <button
-            onClick={handleSaveToFavorites}
-            className="border border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5]/10 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
-          >
-            ⭐ Ajouter aux favoris
-          </button>
-          <button
-            onClick={() => setShowFavorites(true)}
-            className="border border-gray-300 text-gray-700 hover:bg-gray-100 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
-          >
-            📂 Voir mes favoris
-          </button>
-          <button
-            onClick={handleOpenPreview}
-            className="border border-indigo-400 text-indigo-600 hover:bg-indigo-50 px-5 py-2 rounded-xl font-medium shadow w-[200px]"
-          >
-            🎨 Aperçu dans un modèle
-          </button>
-        </div>
-      </div>
-
-      <PaletteHistory history={history} onRestore={restoreFromHistory} />
+      {showHistory && (
+        <PaletteHistory
+          history={history}
+          onRestore={restoreFromHistory}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
 
       {showFavorites && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-6 relative">
-            <button
-              onClick={() => setShowFavorites(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-black"
-            >
-              ✖
-            </button>
-            <h2 className="text-xl font-semibold mb-4 text-center">
-              ⭐ Palettes favorites
-            </h2>
-            <FavoritePalettes
-              onLoad={(colors) => {
-                setColors(colors);
-                setShowFavorites(false);
-              }}
-            />
-          </div>
-        </div>
+        <FavoritePalettes
+          favorites={favorites}
+          onRestore={(palette) => {
+            setColors(palette.colors);
+            addToHistory(palette.colors);
+            setShowFavorites(false);
+          }}
+          onDelete={removeFromFavorites}
+          onClose={() => setShowFavorites(false)}
+        />
       )}
     </div>
   );

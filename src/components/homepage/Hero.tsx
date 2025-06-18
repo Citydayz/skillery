@@ -1,52 +1,52 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, useAnimations } from "@react-three/drei";
-import { Suspense, useEffect, useRef } from "react";
-import { Group, PerspectiveCamera } from "three";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { FiZap, FiLayers, FiClock, FiTrendingUp } from "react-icons/fi";
 
-function EarthHologram() {
-  const ref = useRef<Group>(null);
-  const cameraRef = useRef<PerspectiveCamera | null>(null);
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3,
+      duration: 0.5,
+      ease: [0.6, 0.05, 0.01, 0.9],
+    },
+  },
+};
 
-  const { scene, animations, cameras } = useGLTF(
-    "/assets/looking_glass_hologram_technology_meet_art.glb"
-  );
-  const { actions } = useAnimations(animations, ref);
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: [0.6, 0.05, 0.01, 0.9],
+    },
+  },
+};
 
-  useEffect(() => {
-    if (actions && actions[Object.keys(actions)[0]]) {
-      actions[Object.keys(actions)[0]]!.play();
-    }
-  }, [actions]);
-
-  useFrame((state) => {
-    if (cameraRef.current) {
-      state.camera.position.copy(cameraRef.current.position);
-      state.camera.rotation.copy(cameraRef.current.rotation);
-      state.camera.updateProjectionMatrix();
-    }
-  });
-
-  return (
-    <>
-      <primitive
-        ref={ref}
-        object={scene}
-        scale={5.0}
-        position={[-1, -0.5, 0]}
-      />
-      {cameras.length > 0 && (
-        <primitive
-          object={cameras.find((c) => c.name === "View2") || cameras[0]}
-          ref={cameraRef}
-        />
-      )}
-    </>
-  );
-}
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.6, 0.05, 0.01, 0.9],
+    },
+  },
+  hover: {
+    y: -8,
+    transition: {
+      duration: 0.3,
+      ease: [0.6, 0.05, 0.01, 0.9],
+    },
+  },
+};
 
 export default function Hero() {
   const handleToolsClick = () => {
@@ -57,67 +57,102 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative w-full min-h-[90vh] bg-white flex items-center justify-center overflow-visible">
-      {/* Canvas 3D en absolute */}
-      <div className="absolute right-0 top-0 h-full w-1/2 z-0">
-        <Canvas>
-          <ambientLight intensity={1} />
-          <directionalLight position={[2, 2, 2]} />
-          <Suspense fallback={null}>
-            <EarthHologram />
-          </Suspense>
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            enableRotate={false}
-          />
-        </Canvas>
+    <section className="relative w-full min-h-[calc(100vh-4rem)] bg-white flex items-center justify-center overflow-hidden">
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#00ADB5]/5 to-[#00cfd9]/5" />
+
+      {/* Animated Shapes - Optimized */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#00ADB5]/10 rounded-full mix-blend-multiply filter blur-xl animate-blob-slow" />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-[#00cfd9]/10 rounded-full mix-blend-multiply filter blur-xl animate-blob-slow animation-delay-2000" />
+        <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-[#00ADB5]/10 rounded-full mix-blend-multiply filter blur-xl animate-blob-slow animation-delay-4000" />
       </div>
 
-      {/* Texte principal */}
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-xl"
-          >
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 w-full py-20">
+        <motion.div
+          className="grid lg:grid-cols-2 gap-12 items-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div className="max-w-xl" variants={itemVariants}>
+            <motion.h1
+              className="text-5xl font-bold mb-6 leading-tight"
+              variants={itemVariants}
+            >
               Tout ce qu'il vous faut pour créer, gérer, livrer. En mieux.
-            </h1>
-            <p className="text-gray-600 text-lg mb-8 max-w-lg leading-relaxed">
+            </motion.h1>
+            <motion.p
+              className="text-gray-600 text-lg mb-8 max-w-lg leading-relaxed"
+              variants={itemVariants}
+            >
               Skillery centralise vos outils, optimise votre flux de travail et
               booste votre productivité.
-            </p>
-            <div className="flex gap-4">
+            </motion.p>
+            <motion.div className="flex gap-4" variants={itemVariants}>
               <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2, ease: [0.6, 0.05, 0.01, 0.9] }}
                 href="/tools/image-converter"
-                className="bg-[#00ADB5] hover:bg-[#00cfd9] transition text-white px-6 py-3 rounded-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
+                className="bg-[#00ADB5] hover:bg-[#00cfd9] transition-colors duration-200 text-white px-6 py-3 rounded-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
               >
                 Essayer gratuitement
               </motion.a>
               <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2, ease: [0.6, 0.05, 0.01, 0.9] }}
                 href="#tools"
                 onClick={handleToolsClick}
-                className="border border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5] hover:text-white transition px-6 py-3 rounded-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
+                className="border border-[#00ADB5] text-[#00ADB5] hover:bg-[#00ADB5] hover:text-white transition-colors duration-200 px-6 py-3 rounded-lg font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
               >
                 Voir les outils
               </motion.a>
-            </div>
+            </motion.div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="hidden lg:block"
-          ></motion.div>
-        </div>
+          <motion.div className="hidden lg:block" variants={containerVariants}>
+            <div className="grid grid-cols-2 gap-6">
+              {[
+                {
+                  icon: <FiZap className="w-6 h-6 text-[#00ADB5]" />,
+                  title: "Productivité",
+                  description:
+                    "Optimisez votre flux de travail et gagnez du temps.",
+                },
+                {
+                  icon: <FiLayers className="w-6 h-6 text-[#00ADB5]" />,
+                  title: "Intégration",
+                  description: "Tous vos outils dans une interface unifiée.",
+                },
+                {
+                  icon: <FiClock className="w-6 h-6 text-[#00ADB5]" />,
+                  title: "Efficacité",
+                  description: "Automatisez vos tâches répétitives.",
+                },
+                {
+                  icon: <FiTrendingUp className="w-6 h-6 text-[#00ADB5]" />,
+                  title: "Croissance",
+                  description: "Évoluez avec des outils adaptés à vos besoins.",
+                },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  variants={cardVariants}
+                  whileHover="hover"
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg transition-shadow duration-200 hover:shadow-xl"
+                >
+                  <div className="w-12 h-12 bg-[#00ADB5]/10 rounded-xl flex items-center justify-center mb-4">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

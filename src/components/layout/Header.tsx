@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
@@ -9,14 +9,54 @@ type Tool = {
   title: string;
 };
 
+const CACHE_KEY = "tools_cache";
+const CACHE_DURATION = 1000 * 60 * 60; // 1 heure
+
 export default function Header() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadTools = useCallback(async () => {
+    try {
+      // Vérifier le cache
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          setTools(data);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Charger les données
+      const module = await import("@/data/tools.json");
+      const toolsData = module.default;
+
+      // Mettre en cache
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          data: toolsData,
+          timestamp: Date.now(),
+        })
+      );
+
+      setTools(toolsData);
+    } catch (error) {
+      console.error("Erreur lors du chargement des outils:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    import("@/data/tools.json").then((mod) => {
-      setTools(mod.default);
-    });
+    loadTools();
+  }, [loadTools]);
+
+  const handleMouseLeave = useCallback(() => {
+    setOpen(false);
   }, []);
 
   return (
@@ -28,44 +68,67 @@ export default function Header() {
             Accueil
           </Link>
 
+          <Link href="/about" className="hover:text-[#00ADB5]">
+            À propos
+          </Link>
+
           {/* Dropdown menu */}
           <div className="relative">
             <button
               onClick={() => setOpen(!open)}
               className="hover:text-[#00ADB5]"
+              aria-expanded={open}
+              aria-haspopup="true"
             >
               Outils ▾
             </button>
             {open && (
               <div
                 className="absolute top-full left-0 bg-white border border-gray-200 rounded shadow-md mt-2 z-20 min-w-[200px]"
-                onMouseLeave={() => setOpen(false)}
+                onMouseLeave={handleMouseLeave}
+                role="menu"
               >
-                {tools.map((tool) => (
-                  <Link
-                    key={tool.slug}
-                    href={`/tools/${tool.slug}`}
-                    className="block px-4 py-2 hover:bg-[#00ADB5]/10 text-sm"
-                    onClick={() => setOpen(false)}
-                  >
-                    {tool.title}
-                  </Link>
-                ))}
+                {isLoading ? (
+                  <div className="px-4 py-2 text-sm text-gray-500">
+                    Chargement...
+                  </div>
+                ) : (
+                  tools.map((tool) => (
+                    <Link
+                      key={tool.slug}
+                      href={`/tools/${tool.slug}`}
+                      className="block px-4 py-2 hover:bg-[#00ADB5]/10 text-sm"
+                      onClick={() => setOpen(false)}
+                      role="menuitem"
+                    >
+                      {tool.title}
+                    </Link>
+                  ))
+                )}
               </div>
             )}
           </div>
+
+          <Link href="/pricing" className="hover:text-[#00ADB5]">
+            Tarifs
+          </Link>
 
           <Link href="/blog" className="hover:text-[#00ADB5]">
             Blog
           </Link>
 
-          {/* Liens de Connexion et Inscription */}
-          {/* <Link href="/login">
-            <Button className="hover:text-[#00ADB5]">Connexion</Button>
+          <Link href="/contact" className="hover:text-[#00ADB5]">
+            Contact
           </Link>
-          <Link href="/register">
-            <Button className="hover:text-[#00ADB5]">Inscription</Button>
-          </Link> */}
+
+          <div className="flex items-center space-x-4">
+            <Link href="/login">
+              <Button variant="ghost">Connexion</Button>
+            </Link>
+            <Link href="/register">
+              <Button>Inscription</Button>
+            </Link>
+          </div>
         </nav>
       </div>
     </header>

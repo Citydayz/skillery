@@ -1,41 +1,46 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useState } from "react";
+import { forwardRef, HTMLAttributes, useEffect, useState } from "react";
 
-export default function StickyCTA() {
-  const [isVisible, setIsVisible] = useState(false);
-  const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [300, 400], [0, 1]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsVisible(window.scrollY > 300);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  if (!isVisible) return null;
-
-  return (
-    <motion.div
-      style={{ opacity }}
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 md:hidden z-50"
-    >
-      <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div>
-          <p className="font-semibold">Prêt à commencer ?</p>
-          <p className="text-sm text-gray-600">Essayez Skillery gratuitement</p>
-        </div>
-        <a
-          href="/tools/image-converter"
-          className="bg-[#00ADB5] hover:bg-[#00cfd9] text-white px-4 py-2 rounded-lg font-semibold text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00ADB5]"
-        >
-          Commencer
-        </a>
-      </div>
-    </motion.div>
-  );
+interface StickyCTAProps extends HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
 }
+
+export const StickyCTA = forwardRef<HTMLDivElement, StickyCTAProps>(
+  ({ children, className = "" }, ref) => {
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+      const handleScroll = () => {
+        const currentScrollY = window.scrollY;
+        setIsVisible(currentScrollY < lastScrollY || currentScrollY < 10);
+        setLastScrollY(currentScrollY);
+      };
+
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      return () => window.removeEventListener("scroll", handleScroll);
+    }, [lastScrollY]);
+
+    return (
+      <div
+        ref={ref}
+        className={`
+          fixed bottom-0 left-0 right-0 z-50
+          transform transition-transform duration-300
+          ${isVisible ? "translate-y-0" : "translate-y-full"}
+          ${className}
+        `}
+      >
+        <div className="bg-white border-t border-gray-200 shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+StickyCTA.displayName = "StickyCTA";
