@@ -1,10 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import AppLayout from "@/components/layout/AppLayout";
+import { Inter } from "next/font/google";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Skillery – Outils SaaS pour Freelances & Agences",
-  description: "Le hub tout-en-un pour gérer tes projets web.",
+  title: "Skillery - Outils pour professionnels",
+  description: "Une suite d'outils puissants et faciles à utiliser pour les professionnels.",
 };
 
 export default function RootLayout({
@@ -14,8 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body>
-        <AppLayout>{children}</AppLayout>
+      <body className={`${inter.className} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
